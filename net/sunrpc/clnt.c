@@ -360,7 +360,7 @@ static struct rpc_clnt * rpc_new_client(const struct rpc_create_args *args, stru
 
 	auth = rpcauth_create(args->authflavor, clnt);
 	if (IS_ERR(auth)) {
-		printk(KERN_INFO "RPC: Couldn't create auth handle (flavor %u)\n",
+		dprintk("RPC:       Couldn't create auth handle (flavor %u)\n",
 				args->authflavor);
 		err = PTR_ERR(auth);
 		goto out_no_auth;
@@ -413,6 +413,8 @@ struct rpc_clnt *rpc_create(struct rpc_create_args *args)
 
 	if (args->flags & RPC_CLNT_CREATE_INFINITE_SLOTS)
 		xprtargs.flags |= XPRT_CREATE_INFINITE_SLOTS;
+	if (args->flags & RPC_CLNT_CREATE_NO_IDLE_TIMEOUT)
+		xprtargs.flags |= XPRT_CREATE_NO_IDLE_TIMEOUT;
 	/*
 	 * If the caller chooses not to specify a hostname, whip
 	 * up a string representation of the passed-in address.
@@ -681,6 +683,7 @@ rpc_release_client(struct rpc_clnt *clnt)
 	if (atomic_dec_and_test(&clnt->cl_count))
 		rpc_free_auth(clnt);
 }
+EXPORT_SYMBOL_GPL(rpc_release_client);
 
 /**
  * rpc_bind_new_program - bind a new RPC program to an existing client

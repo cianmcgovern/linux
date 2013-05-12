@@ -314,7 +314,7 @@ void __init omap3xxx_check_revision(void)
 	 * If the processor type is Cortex-A8 and the revision is 0x0
 	 * it means its Cortex r0p0 which is 3430 ES1.0.
 	 */
-	cpuid = read_cpuid(CPUID_ID);
+	cpuid = read_cpuid_id();
 	if ((((cpuid >> 4) & 0xfff) == 0xc08) && ((cpuid & 0xf) == 0x0)) {
 		omap_revision = OMAP3430_REV_ES1_0;
 		cpu_rev = "1.0";
@@ -419,10 +419,14 @@ void __init omap3xxx_check_revision(void)
 			cpu_rev = "1.0";
 			break;
 		case 1:
-		/* FALLTHROUGH */
-		default:
 			omap_revision = AM335X_REV_ES2_0;
 			cpu_rev = "2.0";
+			break;
+		case 2:
+		/* FALLTHROUGH */
+		default:
+			omap_revision = AM335X_REV_ES2_1;
+			cpu_rev = "2.1";
 			break;
 		}
 		break;
@@ -475,7 +479,7 @@ void __init omap4xxx_check_revision(void)
 	 * Use ARM register to detect the correct ES version
 	 */
 	if (!rev && (hawkeye != 0xb94e) && (hawkeye != 0xb975)) {
-		idcode = read_cpuid(CPUID_ID);
+		idcode = read_cpuid_id();
 		rev = (idcode & 0xf) - 1;
 	}
 
@@ -644,13 +648,12 @@ void __init omap_soc_device_init(void)
 	soc_dev_attr->revision = soc_rev;
 
 	soc_dev = soc_device_register(soc_dev_attr);
-	if (IS_ERR_OR_NULL(soc_dev)) {
+	if (IS_ERR(soc_dev)) {
 		kfree(soc_dev_attr);
 		return;
 	}
 
 	parent = soc_device_to_device(soc_dev);
-	if (!IS_ERR_OR_NULL(parent))
-		device_create_file(parent, &omap_soc_attr);
+	device_create_file(parent, &omap_soc_attr);
 }
 #endif /* CONFIG_SOC_BUS */
